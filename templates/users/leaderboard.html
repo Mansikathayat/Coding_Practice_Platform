@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - CodeMaster</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --github-bg: #0d1117;
+            --github-surface: #161b22;
+            --github-border: #30363d;
+            --github-text: #e6edf3;
+            --github-accent: #238636;
+            --github-warning: #d29922;
+            --github-danger: #da3633;
+        }
+        body {
+            background-color: var(--github-bg);
+            color: var(--github-text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+        }
+        .navbar {
+            background-color: var(--github-surface) !important;
+            border-bottom: 1px solid var(--github-border);
+        }
+        .card {
+            background-color: var(--github-surface);
+            border: 1px solid var(--github-border);
+            border-radius: 12px;
+        }
+        .table-dark {
+            --bs-table-bg: var(--github-surface);
+            --bs-table-border-color: var(--github-border);
+        }
+        .podium-card {
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .podium-card:hover {
+            transform: translateY(-5px);
+        }
+        .podium-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        .podium-card.gold::before { background: linear-gradient(90deg, #ffd700, #ffed4e); }
+        .podium-card.silver::before { background: linear-gradient(90deg, #c0c0c0, #e8e8e8); }
+        .podium-card.bronze::before { background: linear-gradient(90deg, #cd7f32, #daa520); }
+        .trophy-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .rank-badge {
+            font-size: 1.2rem;
+            padding: 0.5rem 1rem;
+        }
+        .progress {
+            background-color: var(--github-border);
+            height: 8px;
+            border-radius: 4px;
+        }
+        .streak-fire {
+            animation: flicker 1.5s infinite alternate;
+        }
+        @keyframes flicker {
+            0% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-terminal me-2"></i>CodeMaster
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/problems/"><i class="fas fa-code me-1"></i>Problems</a>
+                <a class="nav-link" href="/quiz/"><i class="fas fa-question-circle me-1"></i>Quiz</a>
+                <a class="nav-link active" href="/users/leaderboard/"><i class="fas fa-trophy me-1"></i>Leaderboard</a>
+                <a class="nav-link" href="/users/progress/"><i class="fas fa-chart-line me-1"></i>Progress</a>
+                <a class="nav-link" href="/users/profile/"><i class="fas fa-user me-1"></i>Profile</a>
+                <a class="nav-link" href="/users/logout/"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h1 class="display-4 mb-3">
+                <i class="fas fa-trophy text-warning me-3"></i>Leaderboard
+            </h1>
+            <p class="lead text-muted">Top performers on CodeMaster</p>
+        </div>
+        
+        <!-- Top 3 Podium -->
+        {% if users_stats|length >= 3 %}
+        <div class="row mb-5">
+            <!-- 2nd Place -->
+            <div class="col-md-4 order-md-1 mb-3">
+                <div class="card podium-card silver h-100">
+                    <div class="card-body text-center pt-4">
+                        <i class="fas fa-medal trophy-icon text-secondary"></i>
+                        <span class="badge rank-badge bg-secondary mb-3">#2</span>
+                        <h4 class="mb-2">
+                            <i class="fas fa-user-circle me-2"></i>{{ users_stats.1.user.username }}
+                        </h4>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h5 class="text-success mb-0">{{ users_stats.1.solved_count }}</h5>
+                                <small class="text-muted">Solved</small>
+                            </div>
+                            <div class="col-6">
+                                <h5 class="text-warning mb-0">
+                                    <span class="streak-fire">🔥</span>{{ users_stats.1.current_streak }}
+                                </h5>
+                                <small class="text-muted">Streak</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 1st Place -->
+            <div class="col-md-4 order-md-2 mb-3">
+                <div class="card podium-card gold h-100">
+                    <div class="card-body text-center pt-4">
+                        <i class="fas fa-crown trophy-icon text-warning"></i>
+                        <span class="badge rank-badge bg-warning text-dark mb-3">#1</span>
+                        <h4 class="mb-2">
+                            <i class="fas fa-user-circle me-2"></i>{{ users_stats.0.user.username }}
+                        </h4>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h5 class="text-success mb-0">{{ users_stats.0.solved_count }}</h5>
+                                <small class="text-muted">Solved</small>
+                            </div>
+                            <div class="col-6">
+                                <h5 class="text-warning mb-0">
+                                    <span class="streak-fire">🔥</span>{{ users_stats.0.current_streak }}
+                                </h5>
+                                <small class="text-muted">Streak</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 3rd Place -->
+            <div class="col-md-4 order-md-3 mb-3">
+                <div class="card podium-card bronze h-100">
+                    <div class="card-body text-center pt-4">
+                        <i class="fas fa-award trophy-icon" style="color: #cd7f32;"></i>
+                        <span class="badge rank-badge" style="background-color: #cd7f32; color: white;">#3</span>
+                        <h4 class="mb-2 mt-3">
+                            <i class="fas fa-user-circle me-2"></i>{{ users_stats.2.user.username }}
+                        </h4>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h5 class="text-success mb-0">{{ users_stats.2.solved_count }}</h5>
+                                <small class="text-muted">Solved</small>
+                            </div>
+                            <div class="col-6">
+                                <h5 class="text-warning mb-0">
+                                    <span class="streak-fire">🔥</span>{{ users_stats.2.current_streak }}
+                                </h5>
+                                <small class="text-muted">Streak</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+                
+        <!-- Full Leaderboard Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list-ol me-2"></i>Complete Rankings</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag me-1"></i>Rank</th>
+                            <th><i class="fas fa-user me-1"></i>User</th>
+                            <th><i class="fas fa-check-circle me-1"></i>Problems Solved</th>
+                            <th><i class="fas fa-fire me-1"></i>Current Streak</th>
+                            <th><i class="fas fa-chart-line me-1"></i>Success Rate</th>
+                            <th><i class="fas fa-brain me-1"></i>Quiz Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_stat in users_stats %}
+                        <tr {% if user_stat.user == request.user %}class="table-info"{% endif %}>
+                            <td>
+                                {% if forloop.counter == 1 %}
+                                    <span class="badge bg-warning text-dark fs-6">
+                                        <i class="fas fa-crown me-1"></i>#1
+                                    </span>
+                                {% elif forloop.counter == 2 %}
+                                    <span class="badge bg-secondary fs-6">
+                                        <i class="fas fa-medal me-1"></i>#2
+                                    </span>
+                                {% elif forloop.counter == 3 %}
+                                    <span class="badge fs-6" style="background-color: #cd7f32; color: white;">
+                                        <i class="fas fa-award me-1"></i>#3
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-dark border fs-6">#{{ forloop.counter }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user-circle me-2 text-info"></i>
+                                    <span class="fw-bold">{{ user_stat.user.username }}</span>
+                                    {% if user_stat.user == request.user %}
+                                        <span class="badge bg-info ms-2">You</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-success fs-6">
+                                    <i class="fas fa-code me-1"></i>{{ user_stat.solved_count }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-warning text-dark fs-6">
+                                    <span class="streak-fire me-1">🔥</span>{{ user_stat.current_streak }} days
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress me-2" style="width: 100px; height: 8px;">
+                                        <div class="progress-bar bg-info" style="width: {{ user_stat.success_rate }}%"></div>
+                                    </div>
+                                    <small class="text-muted">{{ user_stat.success_rate }}%</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info fs-6">
+                                    <i class="fas fa-brain me-1"></i>{{ user_stat.quiz_score|default:"--" }}%
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-users fa-4x mb-3 opacity-50"></i>
+                                    <h5>No users found</h5>
+                                    <p>Be the first to solve problems and claim the top spot!</p>
+                                    <a href="/problems/" class="btn btn-primary">
+                                        <i class="fas fa-play me-1"></i>Start Coding
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

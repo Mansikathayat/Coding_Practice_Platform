@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ quiz.title }} - CodeMaster{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --github-bg: #0d1117;
+        --github-surface: #161b22;
+        --github-border: #30363d;
+        --github-text: #e6edf3;
+        --github-accent: #238636;
+        --github-warning: #d29922;
+        --github-danger: #da3633;
+    }
+    body {
+        background-color: var(--github-bg);
+        color: var(--github-text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+    }
+    .quiz-detail-card {
+        background: var(--github-surface);
+        border: 1px solid var(--github-border);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+    }
+    .quiz-header {
+        background: linear-gradient(135deg, #238636, #2ea043);
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .quiz-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90" fill="%23ffffff10">🧠</text></svg>') repeat;
+        background-size: 60px 60px;
+        animation: float 20s infinite linear;
+    }
+    @keyframes float {
+        0% { transform: translateX(0px) translateY(0px); }
+        100% { transform: translateX(-60px) translateY(-60px); }
+    }
+    .stat-card {
+        background: rgba(48, 54, 61, 0.3);
+        border: 1px solid var(--github-border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    .stat-card:hover {
+        background: rgba(88, 166, 255, 0.1);
+        border-color: #58a6ff;
+        transform: translateY(-4px);
+    }
+    .best-score-card {
+        background: linear-gradient(135deg, rgba(46, 160, 67, 0.1), rgba(35, 134, 54, 0.1));
+        border: 1px solid var(--github-accent);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+    .instructions-card {
+        background: rgba(48, 54, 61, 0.2);
+        border: 1px solid var(--github-border);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+    .btn-start {
+        background: linear-gradient(135deg, #238636, #2ea043);
+        border: none;
+        border-radius: 12px;
+        padding: 1rem 2.5rem;
+        font-weight: 600;
+        color: white;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .btn-start:hover {
+        background: linear-gradient(135deg, #2ea043, #238636);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(46, 160, 67, 0.4);
+        color: white;
+    }
+    .btn-back {
+        background: transparent;
+        border: 2px solid var(--github-border);
+        border-radius: 12px;
+        padding: 1rem 2rem;
+        color: var(--github-text);
+        transition: all 0.3s ease;
+    }
+    .btn-back:hover {
+        border-color: #58a6ff;
+        background: rgba(88, 166, 255, 0.1);
+        color: #58a6ff;
+    }
+    .difficulty-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .category-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.5rem;
+    }
+    .python-icon { background: linear-gradient(135deg, #3776ab, #4b8bbe); }
+    .java-icon { background: linear-gradient(135deg, #f89820, #ed8b00); }
+    .javascript-icon { background: linear-gradient(135deg, #f7df1e, #f0db4f); color: #000; }
+    .general-icon { background: linear-gradient(135deg, #58a6ff, #79c0ff); }
+</style>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="quiz-detail-card">
+                <!-- Quiz Header -->
+                <div class="quiz-header text-white position-relative">
+                    <div class="position-relative z-index-1">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="category-icon {% if quiz.category == 'python' %}python-icon{% elif quiz.category == 'java' %}java-icon{% elif quiz.category == 'javascript' %}javascript-icon{% else %}general-icon{% endif %}">
+                                    <i class="fab fa-{% if quiz.category == 'python' %}python{% elif quiz.category == 'java' %}java{% elif quiz.category == 'javascript' %}js-square{% else %}code{% endif %}"></i>
+                                </div>
+                                <div>
+                                    <h2 class="mb-1 fw-bold">{{ quiz.title }}</h2>
+                                    <small class="opacity-75">{{ quiz.category|title }} Quiz Challenge</small>
+                                </div>
+                            </div>
+                            <span class="difficulty-badge bg-{% if quiz.difficulty == 'easy' %}success{% elif quiz.difficulty == 'medium' %}warning text-dark{% else %}danger{% endif %}">
+                                {% if quiz.difficulty == 'easy' %}<i class="fas fa-seedling me-1"></i>
+                                {% elif quiz.difficulty == 'medium' %}<i class="fas fa-star me-1"></i>
+                                {% else %}<i class="fas fa-fire me-1"></i>{% endif %}
+                                {{ quiz.difficulty|title }}
+                            </span>
+                        </div>
+                        <p class="lead mb-0 opacity-90">{{ quiz.description }}</p>
+                    </div>
+                </div>
+                
+                <!-- Quiz Stats -->
+                <div class="p-4">
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="stat-card">
+                                <i class="fas fa-question-circle text-info fa-2x mb-3"></i>
+                                <h4 class="text-white mb-1">{{ questions_count }}</h4>
+                                <small class="text-muted">Questions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="stat-card">
+                                <i class="fas fa-clock text-warning fa-2x mb-3"></i>
+                                <h4 class="text-white mb-1">{{ quiz.time_limit|floatformat:0 }}s</h4>
+                                <small class="text-muted">Time Limit</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="stat-card">
+                                <i class="fas fa-trophy text-success fa-2x mb-3"></i>
+                                <h4 class="text-white mb-1">{{ total_attempts|default:0 }}</h4>
+                                <small class="text-muted">Your Attempts</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Best Score -->
+                    {% if best_attempt %}
+                    <div class="best-score-card mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-medal text-success fa-2x me-3"></i>
+                            <div>
+                                <h6 class="text-success mb-0 fw-bold">Your Best Performance</h6>
+                                <small class="text-muted">Keep pushing your limits!</small>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <h4 class="text-success mb-0">{{ best_attempt.score }}/{{ best_attempt.total_questions }}</h4>
+                                    <small class="text-muted">Score</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <h4 class="text-success mb-0">{{ best_percentage }}%</h4>
+                                    <small class="text-muted">Accuracy</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <h4 class="text-success mb-0">{{ best_attempt.time_taken }}s</h4>
+                                    <small class="text-muted">Time Taken</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Instructions -->
+                    <div class="instructions-card mb-4">
+                        <h6 class="text-white mb-3 d-flex align-items-center">
+                            <i class="fas fa-info-circle me-2 text-info"></i>Quiz Instructions
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="text-muted mb-0 list-unstyled">
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Read each question carefully</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Select the best answer option</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Review answers before submitting</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="text-muted mb-0 list-unstyled">
+                                    <li class="mb-2"><i class="fas fa-clock text-warning me-2"></i>Timer starts when you begin</li>
+                                    <li class="mb-2"><i class="fas fa-bolt text-danger me-2"></i>Submit before time runs out</li>
+                                    <li class="mb-2"><i class="fas fa-redo text-info me-2"></i>You can retake the quiz anytime</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="p-4 pt-0 text-center">
+                    <a href="{% url 'quiz:start' quiz.id %}" class="btn btn-start me-3">
+                        <i class="fas fa-play me-2"></i>Start Quiz Challenge
+                    </a>
+                    <a href="{% url 'quiz:list' %}" class="btn btn-back">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Quizzes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add entrance animation
+document.addEventListener('DOMContentLoaded', function() {
+    const card = document.querySelector('.quiz-detail-card');
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(30px)';
+    card.style.transition = 'all 0.6s ease';
+    
+    setTimeout(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+    }, 100);
+    
+    // Animate stat cards
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.4s ease';
+        
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 300 + (index * 100));
+    });
+});
+</script>
+{% endblock %}

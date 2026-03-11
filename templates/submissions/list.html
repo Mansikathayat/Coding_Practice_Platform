@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submissions - CodeMaster</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --github-bg: #0d1117;
+            --github-surface: #161b22;
+            --github-border: #30363d;
+            --github-text: #e6edf3;
+            --github-accent: #238636;
+            --github-warning: #d29922;
+            --github-danger: #da3633;
+        }
+        body {
+            background-color: var(--github-bg);
+            color: var(--github-text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+        }
+        .navbar {
+            background-color: var(--github-surface) !important;
+            border-bottom: 1px solid var(--github-border);
+        }
+        .card {
+            background-color: var(--github-surface);
+            border: 1px solid var(--github-border);
+            border-radius: 12px;
+        }
+        .table-dark {
+            --bs-table-bg: var(--github-surface);
+            --bs-table-border-color: var(--github-border);
+        }
+        .submissions-header {
+            background: linear-gradient(135deg, var(--github-surface), #21262d);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--github-border);
+        }
+        .filter-card {
+            background: rgba(48, 54, 61, 0.3);
+            border: 1px solid var(--github-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .language-badge {
+            background: rgba(48, 54, 61, 0.8);
+            border: 1px solid var(--github-border);
+            padding: 0.3rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+        }
+        .submission-row {
+            transition: all 0.2s ease;
+        }
+        .submission-row:hover {
+            background-color: rgba(88, 166, 255, 0.05) !important;
+            transform: translateX(4px);
+        }
+        .btn-view {
+            background: transparent;
+            border: 1px solid var(--github-border);
+            color: var(--github-text);
+            border-radius: 8px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+        .btn-view:hover {
+            border-color: #58a6ff;
+            background: rgba(88, 166, 255, 0.1);
+            color: #58a6ff;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: rgba(13, 17, 23, 0.6);
+            border-radius: 12px;
+            border: 2px dashed var(--github-border);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-item {
+            background: rgba(48, 54, 61, 0.3);
+            border: 1px solid var(--github-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .stat-item:hover {
+            background: rgba(88, 166, 255, 0.1);
+            border-color: #58a6ff;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-terminal me-2"></i>CodeMaster
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/problems/"><i class="fas fa-code me-1"></i>Problems</a>
+                <a class="nav-link" href="/quiz/"><i class="fas fa-question-circle me-1"></i>Quiz</a>
+                <a class="nav-link" href="/users/leaderboard/"><i class="fas fa-trophy me-1"></i>Leaderboard</a>
+                <a class="nav-link" href="/users/progress/"><i class="fas fa-chart-line me-1"></i>Progress</a>
+                <a class="nav-link active" href="/submissions/"><i class="fas fa-history me-1"></i>Submissions</a>
+                <a class="nav-link" href="/users/profile/"><i class="fas fa-user me-1"></i>Profile</a>
+                <a class="nav-link" href="/users/logout/"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Header Section -->
+        <div class="submissions-header">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h2 class="mb-2 d-flex align-items-center">
+                        <i class="fas fa-history me-3 text-info"></i>My Submissions
+                    </h2>
+                    <p class="text-muted mb-0">Track your coding journey and progress</p>
+                </div>
+                <div class="text-end">
+                    <a href="/problems/" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Solve More Problems
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+            <div class="stat-item">
+                <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                <h5 class="mb-1">{{ submissions|length }}</h5>
+                <small class="text-muted">Total Submissions</small>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-trophy text-warning fa-2x mb-2"></i>
+                <h5 class="mb-1">{{ accepted_count|default:0 }}</h5>
+                <small class="text-muted">Accepted</small>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-percentage text-info fa-2x mb-2"></i>
+                <h5 class="mb-1">{{ success_rate|default:0 }}%</h5>
+                <small class="text-muted">Success Rate</small>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-code text-primary fa-2x mb-2"></i>
+                <h5 class="mb-1">{{ languages_used|default:0 }}</h5>
+                <small class="text-muted">Languages Used</small>
+            </div>
+        </div>
+        
+        <!-- Submissions Table -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Submission History</h5>
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm" style="width: auto;">
+                        <option>All Status</option>
+                        <option>Accepted</option>
+                        <option>Wrong Answer</option>
+                        <option>Runtime Error</option>
+                    </select>
+                    <select class="form-select form-select-sm" style="width: auto;">
+                        <option>All Languages</option>
+                        <option>Python</option>
+                        <option>Java</option>
+                        <option>JavaScript</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-puzzle-piece me-1"></i>Problem</th>
+                            <th><i class="fas fa-code me-1"></i>Language</th>
+                            <th><i class="fas fa-check-circle me-1"></i>Status</th>
+                            <th><i class="fas fa-clock me-1"></i>Runtime</th>
+                            <th><i class="fas fa-calendar me-1"></i>Submitted</th>
+                            <th><i class="fas fa-cog me-1"></i>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for submission in submissions %}
+                        <tr class="submission-row">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <span class="badge rounded-pill
+                                            {% if submission.problem.difficulty == 'easy' %}bg-success
+                                            {% elif submission.problem.difficulty == 'medium' %}bg-warning text-dark
+                                            {% else %}bg-danger{% endif %}" style="font-size: 0.6rem;">
+                                            {% if submission.problem.difficulty == 'easy' %}<i class="fas fa-seedling"></i>
+                                            {% elif submission.problem.difficulty == 'medium' %}<i class="fas fa-star"></i>
+                                            {% else %}<i class="fas fa-fire"></i>{% endif %}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <a href="/problems/{{ submission.problem.slug }}/" class="text-decoration-none text-info fw-bold">
+                                            {{ submission.problem.title }}
+                                        </a>
+                                        <br><small class="text-muted">{{ submission.problem.category|title }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="language-badge">
+                                    {% if submission.language == 'python' %}<i class="fab fa-python me-1 text-info"></i>
+                                    {% elif submission.language == 'java' %}<i class="fab fa-java me-1 text-warning"></i>
+                                    {% elif submission.language == 'javascript' %}<i class="fab fa-js me-1 text-warning"></i>
+                                    {% else %}<i class="fas fa-code me-1"></i>{% endif %}
+                                    {{ submission.get_language_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-badge
+                                    {% if submission.status == 'accepted' %}bg-success
+                                    {% elif submission.status == 'wrong_answer' %}bg-danger
+                                    {% elif submission.status == 'runtime_error' %}bg-warning text-dark
+                                    {% elif submission.status == 'time_limit_exceeded' %}bg-info text-dark
+                                    {% else %}bg-secondary{% endif %}">
+                                    {% if submission.status == 'accepted' %}<i class="fas fa-check me-1"></i>
+                                    {% elif submission.status == 'wrong_answer' %}<i class="fas fa-times me-1"></i>
+                                    {% elif submission.status == 'runtime_error' %}<i class="fas fa-exclamation-triangle me-1"></i>
+                                    {% elif submission.status == 'time_limit_exceeded' %}<i class="fas fa-clock me-1"></i>
+                                    {% else %}<i class="fas fa-question me-1"></i>{% endif %}
+                                    {{ submission.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if submission.runtime %}
+                                    <span class="badge bg-dark border">
+                                        <i class="fas fa-stopwatch me-1"></i>{{ submission.runtime }}ms
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">--</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i>{{ submission.submitted_at|date:"M d, Y" }}
+                                    <br><small><i class="fas fa-clock me-1"></i>{{ submission.submitted_at|date:"H:i" }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="/submissions/{{ submission.id }}/" class="btn btn-view">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <i class="fas fa-code fa-4x mb-3 opacity-50"></i>
+                                    <h5 class="text-white mb-3">No Submissions Yet</h5>
+                                    <p class="text-muted mb-4">Start your coding journey by solving problems!</p>
+                                    <a href="/problems/" class="btn btn-success">
+                                        <i class="fas fa-play me-2"></i>Solve Your First Problem
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add entrance animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('.submission-row');
+            rows.forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(20px)';
+                row.style.transition = 'all 0.4s ease';
+                
+                setTimeout(() => {
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+            
+            // Animate stat items
+            const statItems = document.querySelectorAll('.stat-item');
+            statItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(20px)';
+                item.style.transition = 'all 0.4s ease';
+                
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, 200 + (index * 100));
+            });
+        });
+    </script>
+</body>
+</html>

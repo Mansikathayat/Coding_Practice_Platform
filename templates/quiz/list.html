@@ -1,0 +1,398 @@
+{% extends 'base.html' %}
+{% load quiz_extras %}
+
+{% block title %}Programming Quiz - CodeMaster{% endblock %}
+
+{% block content %}
+<style>
+    body { 
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+        color: #c9d1d9; 
+        min-height: 100vh;
+    }
+    
+    .quiz-container {
+        background: rgba(13, 17, 23, 0.95);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
+        border: 1px solid #30363d;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        padding: 2rem;
+    }
+    
+    .quiz-header {
+        background: linear-gradient(135deg, #238636, #2ea043);
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    
+    .quiz-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90" fill="%23ffffff10">🧠</text></svg>') repeat;
+        background-size: 80px 80px;
+        animation: float 25s infinite linear;
+    }
+    
+    @keyframes float {
+        0% { transform: translateX(0px) translateY(0px); }
+        100% { transform: translateX(-80px) translateY(-80px); }
+    }
+    
+    .quiz-card {
+        background: linear-gradient(135deg, #161b22 0%, #21262d 100%);
+        border: 1px solid #30363d;
+        border-radius: 15px;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+    
+    .quiz-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #58a6ff, transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .quiz-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(88, 166, 255, 0.3);
+        border-color: #58a6ff;
+    }
+    
+    .quiz-card:hover::before {
+        left: 100%;
+    }
+    
+    .completion-indicator {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: linear-gradient(135deg, #2ea043, #238636);
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: white;
+        animation: pulse 2s infinite;
+        box-shadow: 0 4px 12px rgba(46, 160, 67, 0.4);
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    
+    .language-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin: 0 auto 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .python-icon { background: linear-gradient(135deg, #3776ab, #4b8bbe); }
+    .java-icon { background: linear-gradient(135deg, #f89820, #ed8b00); }
+    .javascript-icon { background: linear-gradient(135deg, #f7df1e, #f0db4f); color: #000; }
+    .general-icon { background: linear-gradient(135deg, #58a6ff, #79c0ff); }
+    
+    .difficulty-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .quiz-stats {
+        background: rgba(13, 17, 23, 0.8);
+        border-radius: 12px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 10px;
+        background: rgba(48, 54, 61, 0.3);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-item:hover {
+        background: rgba(88, 166, 255, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .score-display {
+        background: linear-gradient(135deg, #58a6ff, #79c0ff);
+        border-radius: 12px;
+        padding: 15px;
+        color: #000;
+        font-weight: bold;
+        margin: 15px 0;
+    }
+    
+    .btn-quiz {
+        background: linear-gradient(135deg, #238636, #2ea043);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .btn-quiz:hover {
+        background: linear-gradient(135deg, #2ea043, #238636);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(46, 160, 67, 0.4);
+        color: white;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: rgba(13, 17, 23, 0.6);
+        border-radius: 20px;
+        border: 2px dashed #30363d;
+    }
+    
+    .brain-icon {
+        font-size: 4rem;
+        background: linear-gradient(135deg, #238636, #2ea043);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+    }
+    
+    .language-preview-card {
+        background: rgba(48, 54, 61, 0.3);
+        border: 1px solid #30363d;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .language-preview-card:hover {
+        background: rgba(88, 166, 255, 0.1);
+        border-color: #58a6ff;
+        transform: translateY(-4px);
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="quiz-container">
+        <!-- Quiz Header -->
+        <div class="quiz-header text-white position-relative">
+            <div class="position-relative z-index-1">
+                <i class="fas fa-brain fa-3x mb-3"></i>
+                <h2 class="mb-2 fw-bold">Programming Quiz Arena</h2>
+                <p class="lead mb-3">Challenge your coding knowledge across multiple languages</p>
+                <a href="{% url 'quiz:daily' %}" class="btn btn-light btn-lg px-4 py-2">
+                    <i class="fas fa-calendar-day me-2"></i>Daily Challenge
+                </a>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for quiz in quizzes %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="quiz-card position-relative">
+                    <!-- Completion Indicator -->
+                    {% if user.is_authenticated and quiz.id in user_quiz_data %}
+                        <div class="completion-indicator" title="Completed">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="p-4">
+                        <!-- Language Icon -->
+                        <div class="language-icon {% if quiz.category == 'python' %}python-icon{% elif quiz.category == 'java' %}java-icon{% elif quiz.category == 'javascript' %}javascript-icon{% else %}general-icon{% endif %}">
+                            <i class="fab fa-{% if quiz.category == 'python' %}python{% elif quiz.category == 'java' %}java{% elif quiz.category == 'javascript' %}js-square{% else %}code{% endif %}"></i>
+                        </div>
+                        
+                        <!-- Quiz Info -->
+                        <div class="text-center mb-3">
+                            <h5 class="text-white mb-2 fw-bold">{{ quiz.title }}</h5>
+                            <span class="difficulty-badge bg-{% if quiz.difficulty == 'easy' %}success{% elif quiz.difficulty == 'medium' %}warning{% else %}danger{% endif %}">
+                                {{ quiz.difficulty }}
+                            </span>
+                        </div>
+                        
+                        <p class="text-muted text-center mb-3">{{ quiz.description|truncatewords:12 }}</p>
+                        
+                        <!-- User's Best Score -->
+                        {% if user.is_authenticated and quiz.id in user_quiz_data %}
+                            {% with quiz_data=user_quiz_data|get_item:quiz.id %}
+                            <div class="score-display text-center">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="h6 mb-0">{{ quiz_data.score }}/{{ quiz_data.total_questions }}</div>
+                                        <small>Score</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="h6 mb-0">{{ quiz_data.percentage }}%</div>
+                                        <small>Accuracy</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endwith %}
+                        {% endif %}
+                        
+                        <!-- Quiz Stats -->
+                        <div class="quiz-stats">
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="stat-item">
+                                        <i class="fas fa-clock text-warning d-block mb-1"></i>
+                                        <small class="text-muted">{{ quiz.time_limit }}s</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-item">
+                                        <i class="fas fa-question-circle text-info d-block mb-1"></i>
+                                        <small class="text-muted">{{ quiz.questions.count }}Q</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-item">
+                                        <i class="fas fa-star text-success d-block mb-1"></i>
+                                        <small class="text-muted">{{ quiz.questions.count }}0pts</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Button -->
+                        <div class="text-center">
+                            <a href="{% url 'quiz:detail' quiz.id %}" class="btn btn-quiz w-100">
+                                <i class="fas fa-play me-2"></i>Start Challenge
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <!-- Empty State with Language Logos -->
+            <div class="col-12">
+                <div class="empty-state">
+                    <div class="brain-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h4 class="text-white mb-3">No Quizzes Available</h4>
+                    <p class="text-muted mb-4">New programming challenges coming soon! Practice with these languages:</p>
+                    <div class="row justify-content-center">
+                        <div class="col-md-10">
+                            <div class="row g-4">
+                                <div class="col-md-3 col-6">
+                                    <div class="language-preview-card p-3 text-center">
+                                        <div class="language-icon python-icon mx-auto mb-2">
+                                            <i class="fab fa-python"></i>
+                                        </div>
+                                        <h6 class="text-white mb-1">Python</h6>
+                                        <p class="small text-muted mb-0">Data Structures & Algorithms</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="language-preview-card p-3 text-center">
+                                        <div class="language-icon java-icon mx-auto mb-2">
+                                            <i class="fab fa-java"></i>
+                                        </div>
+                                        <h6 class="text-white mb-1">Java</h6>
+                                        <p class="small text-muted mb-0">Object-Oriented Programming</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="language-preview-card p-3 text-center">
+                                        <div class="language-icon javascript-icon mx-auto mb-2">
+                                            <i class="fab fa-js-square"></i>
+                                        </div>
+                                        <h6 class="text-white mb-1">JavaScript</h6>
+                                        <p class="small text-muted mb-0">Web Development & DOM</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="language-preview-card p-3 text-center">
+                                        <div class="language-icon general-icon mx-auto mb-2">
+                                            <i class="fas fa-code"></i>
+                                        </div>
+                                        <h6 class="text-white mb-1">General</h6>
+                                        <p class="small text-muted mb-0">Programming Concepts</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="/problems/" class="btn btn-quiz">
+                            <i class="fas fa-code me-2"></i>Practice Problems Instead
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Enhanced hover effects with stagger animation
+document.querySelectorAll('.quiz-card').forEach((card, index) => {
+    // Stagger animation on load
+    card.style.animationDelay = (index * 0.1) + 's';
+    card.style.animation = 'fadeInUp 0.6s ease forwards';
+    
+    // Enhanced hover effects
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-8px) scale(1.02)';
+        this.style.boxShadow = '0 20px 40px rgba(88, 166, 255, 0.3)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+        this.style.boxShadow = 'none';
+    });
+});
+
+// Add fadeInUp animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

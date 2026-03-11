@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ quiz.title }} - Quiz Started{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --github-bg: #0d1117;
+        --github-surface: #161b22;
+        --github-border: #30363d;
+        --github-text: #e6edf3;
+    }
+    body {
+        background-color: var(--github-bg);
+        color: var(--github-text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+        min-height: 100vh;
+    }
+    
+    .quiz-container {
+        background: var(--github-surface);
+        border: 1px solid var(--github-border);
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    
+    .question-card {
+        background: var(--github-surface);
+        border: 1px solid var(--github-border);
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        margin-bottom: 1rem;
+        position: relative;
+    }
+    
+    .question-card:hover {
+        border-color: #58a6ff;
+        box-shadow: 0 4px 12px rgba(88, 166, 255, 0.1);
+    }
+    
+    .language-indicator {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        z-index: 2;
+    }
+    
+    .python-indicator { 
+        background: linear-gradient(135deg, #3776ab, #4b8bbe); 
+        color: white;
+    }
+    .java-indicator { 
+        background: linear-gradient(135deg, #f89820, #ed8b00); 
+        color: white;
+    }
+    .javascript-indicator { 
+        background: linear-gradient(135deg, #f7df1e, #f0db4f); 
+        color: #000;
+    }
+    .general-indicator { 
+        background: linear-gradient(135deg, #58a6ff, #79c0ff); 
+        color: #000;
+    }
+    
+    .code-snippet {
+        background: #0d1117;
+        border: 1px solid var(--github-border);
+        border-radius: 6px;
+        font-size: 0.85rem;
+    }
+    
+    .choice-option {
+        background: rgba(48, 54, 61, 0.3);
+        border: 1px solid var(--github-border);
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        margin-bottom: 0.5rem;
+        padding: 0.75rem;
+    }
+    
+    .choice-option:hover {
+        background: rgba(88, 166, 255, 0.1);
+        border-color: #58a6ff;
+    }
+    
+    .choice-option input[type="radio"]:checked + label {
+        color: #2ea043;
+        font-weight: 500;
+    }
+    
+    .choice-option:has(input[type="radio"]:checked) {
+        background: rgba(46, 160, 67, 0.1);
+        border-color: #2ea043;
+    }
+    
+    .timer-display {
+        background: linear-gradient(135deg, #f85149, #da3633);
+        border: none;
+        border-radius: 8px;
+        animation: pulse-timer 2s infinite;
+    }
+    
+    @keyframes pulse-timer {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+    }
+    
+    .quiz-header {
+        background: var(--github-surface);
+        border-bottom: 1px solid var(--github-border);
+        backdrop-filter: blur(10px);
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .progress-bar {
+        height: 3px;
+        background: linear-gradient(90deg, #2ea043, #58a6ff);
+        border-radius: 2px;
+        transition: width 0.3s ease;
+    }
+    
+    .question-number {
+        background: #58a6ff;
+        color: #000;
+        border-radius: 12px;
+        padding: 0.25rem 0.75rem;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+    
+    .points-badge {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+        border-radius: 12px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    .choice-letter {
+        background: #30363d;
+        color: var(--github-text);
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Quiz Header -->
+    <div class="quiz-header p-3 mb-3 sticky-top">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="text-white mb-1">{{ quiz.title }}</h6>
+                <small class="text-muted">
+                    <i class="fab fa-{% if quiz.category == 'python' %}python{% elif quiz.category == 'java' %}java{% elif quiz.category == 'javascript' %}js-square{% else %}code{% endif %} me-1"></i>
+                    {{ quiz.category|title }} - {{ quiz.difficulty|title }}
+                </small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="timer-display text-white px-3 py-1 rounded fw-bold">
+                    <i class="fas fa-clock me-1"></i>
+                    <span id="timer">{{ quiz.time_limit }}</span>s
+                </div>
+                <button type="button" class="btn btn-success btn-sm" onclick="submitQuiz()">
+                    <i class="fas fa-paper-plane me-1"></i>Submit
+                </button>
+            </div>
+        </div>
+        <!-- Progress Bar -->
+        <div class="mt-2">
+            <div class="progress" style="height: 3px; background: #21262d;">
+                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+            </div>
+            <small class="text-muted mt-1 d-block">Progress: <span id="progressText">0/{{ questions|length }}</span></small>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="quiz-container p-3">
+                <form id="quizForm">
+                    {% csrf_token %}
+                    {% for question in questions %}
+                    <div class="question-card p-3" data-question="{{ question.id }}">
+                        <!-- Language Indicator -->
+                        <div class="language-indicator {% if quiz.category == 'python' %}python-indicator{% elif quiz.category == 'java' %}java-indicator{% elif quiz.category == 'javascript' %}javascript-indicator{% else %}general-indicator{% endif %}">
+                            {% if quiz.category == 'python' %}
+                                <i class="fab fa-python"></i>
+                            {% elif quiz.category == 'java' %}
+                                <i class="fab fa-java"></i>
+                            {% elif quiz.category == 'javascript' %}
+                                <i class="fab fa-js-square"></i>
+                            {% else %}
+                                <i class="fas fa-code"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="question-number">
+                                Q{{ forloop.counter }}
+                            </span>
+                            <span class="points-badge">
+                                <i class="fas fa-star me-1"></i>{{ question.points }}pts
+                            </span>
+                        </div>
+                        
+                        <p class="text-white mb-2 fs-6">{{ question.question_text }}</p>
+                        
+                        {% if question.code_snippet %}
+                        <div class="code-snippet mb-2 p-2">
+                            <pre class="text-success mb-0 small"><code>{{ question.code_snippet }}</code></pre>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="choices">
+                            {% for choice in question.choices.all %}
+                            <div class="choice-option">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" 
+                                           name="question_{{ question.id }}" 
+                                           id="choice_{{ choice.id }}" 
+                                           value="{{ choice.id }}"
+                                           onchange="updateProgress()">
+                                    <label class="form-check-label text-light w-100 small" for="choice_{{ choice.id }}">
+                                        <div class="d-flex align-items-center">
+                                            <span class="choice-letter me-2">
+                                                {% if forloop.counter0 == 0 %}A{% elif forloop.counter0 == 1 %}B{% elif forloop.counter0 == 2 %}C{% else %}D{% endif %}
+                                            </span>
+                                            <span>{{ choice.choice_text }}</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn btn-success px-4 py-2" onclick="submitQuiz()">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Quiz
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let timeLeft = {{ quiz.time_limit }};
+let startTime = {{ start_time }};
+let timerInterval;
+let totalQuestions = {{ questions|length }};
+
+function startTimer() {
+    timerInterval = setInterval(function() {
+        timeLeft--;
+        document.getElementById('timer').textContent = timeLeft;
+        
+        const timerDisplay = document.querySelector('.timer-display');
+        if (timeLeft <= 30) {
+            timerDisplay.style.background = 'linear-gradient(135deg, #f85149, #da3633)';
+            timerDisplay.style.animation = 'pulse-timer 0.5s infinite';
+        } else if (timeLeft <= 60) {
+            timerDisplay.style.background = 'linear-gradient(135deg, #f39c12, #e67e22)';
+        }
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            alert('⏰ Time is up! Submitting quiz automatically...');
+            submitQuiz();
+        }
+    }, 1000);
+}
+
+function updateProgress() {
+    const answeredQuestions = document.querySelectorAll('input[type="radio"]:checked').length;
+    const progressPercentage = (answeredQuestions / totalQuestions) * 100;
+    
+    document.getElementById('progressBar').style.width = progressPercentage + '%';
+    document.getElementById('progressText').textContent = answeredQuestions + '/' + totalQuestions;
+}
+
+function submitQuiz() {
+    clearInterval(timerInterval);
+    
+    const answers = {};
+    const questions = document.querySelectorAll('.question-card');
+    questions.forEach(function(questionCard) {
+        const questionId = questionCard.dataset.question;
+        const selectedChoice = questionCard.querySelector('input[type="radio"]:checked');
+        if (selectedChoice) {
+            answers[questionId] = selectedChoice.value;
+        }
+    });
+    
+    const timeTaken = {{ quiz.time_limit }} - timeLeft;
+    
+    const submitBtn = document.querySelector('button[onclick="submitQuiz()"]');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Submitting...';
+    submitBtn.disabled = true;
+    
+    fetch('{% url "quiz:submit" quiz.id %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            answers: answers,
+            time_taken: timeTaken
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/quiz/result/' + data.attempt_id + '/';
+        } else {
+            alert('❌ Error: ' + data.error);
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Submit';
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('❌ An error occurred while submitting the quiz.');
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Submit';
+        submitBtn.disabled = false;
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    startTimer();
+    updateProgress();
+});
+</script>
+{% endblock %}

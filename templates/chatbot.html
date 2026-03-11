@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant - CodeMaster</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --github-bg: #0d1117;
+            --github-surface: #161b22;
+            --github-border: #30363d;
+            --github-text: #e6edf3;
+        }
+        body {
+            background-color: var(--github-bg);
+            color: var(--github-text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        .chat-container {
+            height: 70vh;
+            overflow-y: auto;
+            background-color: var(--github-surface);
+            border: 1px solid var(--github-border);
+            border-radius: 12px;
+        }
+        .message {
+            margin: 10px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80%;
+        }
+        .user-message {
+            background-color: #0969da;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: var(--github-border);
+            color: var(--github-text);
+            margin-right: auto;
+        }
+        .typing {
+            display: none;
+            padding: 10px;
+            font-style: italic;
+            color: #7d8590;
+        }
+        .input-group {
+            background-color: var(--github-surface);
+            border-radius: 25px;
+            border: 1px solid var(--github-border);
+        }
+        .form-control {
+            background-color: transparent;
+            border: none;
+            color: var(--github-text);
+        }
+        .form-control:focus {
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+            color: var(--github-text);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--github-surface); border-bottom: 1px solid var(--github-border);">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-terminal me-2"></i>CodeMaster
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/problems/"><i class="fas fa-code me-1"></i>Problems</a>
+                <a class="nav-link" href="/quiz/"><i class="fas fa-question-circle me-1"></i>Quiz</a>
+                <a class="nav-link" href="/users/leaderboard/"><i class="fas fa-trophy me-1"></i>Leaderboard</a>
+                <a class="nav-link active" href="/chatbot/"><i class="fas fa-robot me-1"></i>AI Assistant</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card" style="background-color: var(--github-surface); border: 1px solid var(--github-border);">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="fas fa-robot me-2 text-primary"></i>
+                        <h5 class="mb-0">AI Programming Assistant</h5>
+                        <span class="badge bg-success ms-auto">Online</span>
+                    </div>
+                    
+                    <div id="chatContainer" class="chat-container p-3">
+                        <div class="message bot-message">
+                            <i class="fas fa-robot me-2"></i>
+                            Hello! I'm your AI programming assistant. Ask me anything about coding, algorithms, or programming concepts!
+                        </div>
+                    </div>
+                    
+                    <div class="typing" id="typing">
+                        <i class="fas fa-robot me-2"></i>AI is typing...
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="input-group">
+                            <input type="text" id="messageInput" class="form-control" placeholder="Ask me anything about programming..." onkeypress="handleKeyPress(event)">
+                            <button class="btn btn-primary" onclick="sendMessage()">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const messageInput = document.getElementById('messageInput');
+        const typing = document.getElementById('typing');
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function addMessage(message, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            
+            if (isUser) {
+                messageDiv.innerHTML = `${message} <i class="fas fa-user ms-2"></i>`;
+            } else {
+                // Decode HTML entities and format the message properly
+                const decodedMessage = decodeHtmlEntities(message);
+                messageDiv.innerHTML = `<i class="fas fa-robot me-2"></i>${formatCodeBlocks(decodedMessage)}`;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function decodeHtmlEntities(text) {
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = text;
+            return textarea.value;
+        }
+
+        function formatCodeBlocks(text) {
+            // Replace code blocks with proper formatting
+            text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, language, code) {
+                return `<pre style="background-color: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 8px; margin: 10px 0; overflow-x: auto; border-left: 4px solid #0969da;"><code>${code.trim()}</code></pre>`;
+            });
+            
+            // Replace inline code
+            text = text.replace(/`([^`]+)`/g, '<code style="background-color: #f6f8fa; color: #d73a49; padding: 2px 4px; border-radius: 3px; font-family: monospace;">$1</code>');
+            
+            // Replace **bold** text
+            text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            
+            // Replace line breaks
+            text = text.replace(/\n/g, '<br>');
+            
+            return text;
+        }
+
+        function showTyping() {
+            typing.style.display = 'block';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function hideTyping() {
+            typing.style.display = 'none';
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, true);
+            messageInput.value = '';
+
+            // Show typing indicator
+            showTyping();
+
+            try {
+                // Call OpenAI API (you can replace with any AI API)
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+                hideTyping();
+
+                if (data.success) {
+                    addMessage(data.response);
+                } else {
+                    addMessage('Sorry, I encountered an error. Please try again.');
+                }
+            } catch (error) {
+                hideTyping();
+                addMessage('Sorry, I\'m having trouble connecting. Please try again later.');
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Focus on input when page loads
+        window.onload = function() {
+            messageInput.focus();
+        };
+    </script>
+</body>
+</html>
