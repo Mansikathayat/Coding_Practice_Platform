@@ -1,62 +1,481 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submission Details - CodeMaster</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --github-bg: #0d1117;
+            --github-surface: #161b22;
+            --github-border: #30363d;
+            --github-text: #e6edf3;
+            --github-accent: #238636;
+            --github-warning: #d29922;
+            --github-danger: #da3633;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #21262d 100%);
+            color: var(--github-text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: rgba(13, 17, 23, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--github-border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .main-card {
+            background: var(--github-surface);
+            border: 1px solid var(--github-border);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #1f6feb 0%, #0969da 100%);
+            border: none;
+            padding: 2rem;
+        }
+        
+        .status-card {
+            background: rgba(33, 38, 45, 0.8);
+            border: 1px solid var(--github-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .status-accepted {
+            border-left: 4px solid var(--github-accent);
+            background: rgba(35, 134, 54, 0.1);
+        }
+        
+        .status-wrong {
+            border-left: 4px solid var(--github-danger);
+            background: rgba(218, 54, 51, 0.1);
+        }
+        
+        .status-warning {
+            border-left: 4px solid var(--github-warning);
+            background: rgba(210, 153, 34, 0.1);
+        }
+        
+        .code-container {
+            background: #0d1117;
+            border: 1px solid var(--github-border);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .code-header {
+            background: var(--github-surface);
+            border-bottom: 1px solid var(--github-border);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        
+        .language-badge {
+            background: rgba(31, 111, 235, 0.2);
+            color: #58a6ff;
+            border: 1px solid rgba(31, 111, 235, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .code-content {
+            padding: 0;
+            margin: 0;
+            background: #0d1117;
+            color: #e6edf3;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+        
+        .code-content pre {
+            margin: 0;
+            padding: 1.5rem;
+            background: transparent;
+            border: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .info-item {
+            background: rgba(33, 38, 45, 0.6);
+            border: 1px solid var(--github-border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .info-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .info-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+        
+        .info-label {
+            font-size: 0.875rem;
+            color: #8b949e;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--github-text);
+        }
+        
+        .btn-modern {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-secondary-modern {
+            background: rgba(110, 118, 129, 0.2);
+            color: #f0f6fc;
+            border: 1px solid rgba(110, 118, 129, 0.3);
+        }
+        
+        .btn-secondary-modern:hover {
+            background: rgba(110, 118, 129, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            color: #f0f6fc;
+        }
+        
+        .btn-primary-modern {
+            background: linear-gradient(135deg, #1f6feb 0%, #0969da 100%);
+            color: white;
+        }
+        
+        .btn-primary-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(31, 111, 235, 0.4);
+            color: white;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(110, 118, 129, 0.2);
+            border: 1px solid rgba(110, 118, 129, 0.3);
+            color: #f0f6fc;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(110, 118, 129, 0.3);
+        }
+        
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 2rem;
+        }
+        
+        .breadcrumb-item a {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+        
+        .breadcrumb-item.active {
+            color: #8b949e;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/"><i class="fas fa-code"></i> CodeMaster</a>
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-terminal me-2"></i>CodeMaster
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/"><i class="fas fa-home me-1"></i>Home</a>
+                <a class="nav-link" href="/problems/"><i class="fas fa-code me-1"></i>Problems</a>
+                <a class="nav-link active" href="/submissions/"><i class="fas fa-paper-plane me-1"></i>Submissions</a>
+                <a class="nav-link" href="/users/profile/"><i class="fas fa-user me-1"></i>Profile</a>
+            </div>
         </div>
     </nav>
 
-    <div class="container py-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Submission Details</h5>
+    <div class="container py-4 fade-in" style="margin-top: 80px;">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li class="breadcrumb-item"><a href="/submissions/">Submissions</a></li>
+                <li class="breadcrumb-item active">Submission #{{ submission.id }}</li>
+            </ol>
+        </nav>
+
+        <div class="main-card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 text-white">
+                            <i class="fas fa-file-code me-2"></i>Submission Details
+                        </h3>
+                        <p class="mb-0 text-light opacity-75">Submission #{{ submission.id }} for {{ submission.problem.title }}</p>
                     </div>
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <strong>Problem:</strong> {{ submission.problem.title }}
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Status:</strong> 
-                                <span class="badge 
-                                    {% if submission.status == 'accepted' %}bg-success
-                                    {% elif submission.status == 'wrong_answer' %}bg-danger
-                                    {% else %}bg-warning{% endif %}">
-                                    {{ submission.get_status_display }}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <strong>Language:</strong> {{ submission.get_language_display }}
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Submitted:</strong> {{ submission.submitted_at }}
-                            </div>
-                        </div>
-                        
-                        <h6>Code:</h6>
-                        <pre class="bg-light p-3 rounded"><code>{{ submission.code }}</code></pre>
-                        
-                        <div class="mt-3">
-                            <a href="/submissions/" class="btn btn-secondary">Back to Submissions</a>
-                            <a href="/problems/{{ submission.problem.slug }}/" class="btn btn-primary">View Problem</a>
+                    <div class="text-end">
+                        <div class="badge 
+                            {% if submission.status == 'accepted' %}bg-success
+                            {% elif submission.status == 'wrong_answer' %}bg-danger  
+                            {% elif submission.status == 'time_limit_exceeded' %}bg-warning text-dark
+                            {% else %}bg-secondary{% endif %} fs-6 px-3 py-2">
+                            {% if submission.status == 'accepted' %}
+                                <i class="fas fa-check-circle me-1"></i>Accepted
+                            {% elif submission.status == 'wrong_answer' %}
+                                <i class="fas fa-times-circle me-1"></i>Wrong Answer
+                            {% elif submission.status == 'time_limit_exceeded' %}
+                                <i class="fas fa-clock me-1"></i>Time Limit Exceeded
+                            {% else %}
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ submission.get_status_display }}
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
+            
+            <div class="card-body p-4">
+                <!-- Info Grid -->
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-icon text-primary">
+                            <i class="fas fa-puzzle-piece"></i>
+                        </div>
+                        <div class="info-label">Problem</div>
+                        <div class="info-value">{{ submission.problem.title }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-icon text-info">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <div class="info-label">Language</div>
+                        <div class="info-value">
+                            {% if submission.language == 'python' %}
+                                <i class="fab fa-python me-1"></i>Python
+                            {% elif submission.language == 'java' %}
+                                <i class="fab fa-java me-1"></i>Java
+                            {% elif submission.language == 'javascript' %}
+                                <i class="fab fa-js me-1"></i>JavaScript
+                            {% else %}
+                                {{ submission.get_language_display }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-icon text-warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="info-label">Submitted</div>
+                        <div class="info-value">{{ submission.submitted_at|timesince }} ago</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-icon text-success">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <div class="info-label">Execution Time</div>
+                        <div class="info-value">
+                            {% if submission.execution_time %}
+                                {{ submission.execution_time }}ms
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status Card -->
+                <div class="status-card mb-4 
+                    {% if submission.status == 'accepted' %}status-accepted
+                    {% elif submission.status == 'wrong_answer' %}status-wrong
+                    {% else %}status-warning{% endif %}">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            {% if submission.status == 'accepted' %}
+                                <i class="fas fa-check-circle fa-2x text-success pulse"></i>
+                            {% elif submission.status == 'wrong_answer' %}
+                                <i class="fas fa-times-circle fa-2x text-danger"></i>
+                            {% else %}
+                                <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h5 class="mb-1">
+                                {% if submission.status == 'accepted' %}
+                                    🎉 Congratulations! Your solution is correct.
+                                {% elif submission.status == 'wrong_answer' %}
+                                    ❌ Your solution produced incorrect output.
+                                {% elif submission.status == 'time_limit_exceeded' %}
+                                    ⏰ Your solution exceeded the time limit.
+                                {% else %}
+                                    ⚠️ There was an issue with your submission.
+                                {% endif %}
+                            </h5>
+                            <p class="mb-0 text-muted">
+                                {% if submission.status == 'accepted' %}
+                                    Your code passed all test cases successfully!
+                                {% elif submission.status == 'wrong_answer' %}
+                                    Please review your logic and try again.
+                                {% elif submission.status == 'time_limit_exceeded' %}
+                                    Consider optimizing your algorithm for better performance.
+                                {% else %}
+                                    Check the error details and resubmit.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Code Section -->
+                <div class="mb-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-file-code me-2"></i>Your Code
+                    </h5>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <div class="d-flex align-items-center">
+                                <span class="language-badge">
+                                    {% if submission.language == 'python' %}
+                                        <i class="fab fa-python me-1"></i>Python
+                                    {% elif submission.language == 'java' %}
+                                        <i class="fab fa-java me-1"></i>Java
+                                    {% elif submission.language == 'javascript' %}
+                                        <i class="fab fa-js me-1"></i>JavaScript
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <button class="copy-btn" onclick="copyCode()" title="Copy code">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <div class="code-content">
+                            <pre id="codeBlock"><code>{{ submission.code }}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="d-flex gap-3 justify-content-center">
+                    <a href="/submissions/" class="btn btn-secondary-modern">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Submissions
+                    </a>
+                    <a href="/problems/{{ submission.problem.slug }}/" class="btn btn-primary-modern">
+                        <i class="fas fa-code"></i>
+                        View Problem
+                    </a>
+                    {% if submission.status != 'accepted' %}
+                    <a href="/problems/{{ submission.problem.slug }}/" class="btn btn-primary-modern">
+                        <i class="fas fa-redo"></i>
+                        Try Again
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
+    
+    <script>
+        function copyCode() {
+            const codeBlock = document.getElementById('codeBlock');
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(function() {
+                // Show success feedback
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalHTML = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                copyBtn.style.background = 'rgba(35, 134, 54, 0.3)';
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalHTML;
+                    copyBtn.style.background = 'rgba(110, 118, 129, 0.2)';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+            });
+        }
+        
+        // Add syntax highlighting if Prism is available
+        if (typeof Prism !== 'undefined') {
+            Prism.highlightAll();
+        }
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 </body>
 </html>
