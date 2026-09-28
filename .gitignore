@@ -1,19 +1,10 @@
-# Python cache
+venv/
 __pycache__/
 *.pyc
-
-# Environment variables
+*.pyo
 .env
-
-# Database
-db.sqlite3
-
-# Virtual environment
-venv/
-env/
-
-# VS Code
-.vscode/
-
-# OS files
+staticfiles/
+media/
+*.log
 .DS_Store
+Thumbs.db
